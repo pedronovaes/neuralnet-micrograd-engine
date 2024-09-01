@@ -69,3 +69,26 @@ class Value:
         output._backward = _backward
 
         return output
+
+    def backward(self):
+        topological_order = []
+        visited = set()
+
+        # Build topological order for all of the children in the graph.
+        def build_topological_order(v):
+            if v not in visited:
+                visited.add(v)
+
+                for child in v._previous:
+                    build_topological_order(v=child)
+
+                topological_order.append(v)
+
+        build_topological_order(v=self)
+
+        # Go one variable at a time and apply the chain rule to get its
+        # gradient.
+        self.grad = 1.0
+
+        for v in reversed(topological_order):
+            v._backward()
